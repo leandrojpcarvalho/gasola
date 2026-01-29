@@ -9,4 +9,15 @@
 
 import router from '@adonisjs/core/services/router'
 
-router.get('/', async () => 'It works!')
+const ControleUsuario = () => import('#controllers/usuario')
+
+router.get('/', async () => {
+  return { api: 'jogo da forca' }
+})
+
+router
+  .group(() => {
+    router.post('/criar', [ControleUsuario, 'criar'])
+    router.post('/login', [ControleUsuario, 'login'])
+  })
+  .prefix('/usuario')
