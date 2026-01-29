@@ -1,0 +1,22 @@
+{
+  "name": "jogodaforca-shared",
+  "version": "1.0.0",
+  "description": "Tipos e utilitários compartilhados entre backend e frontend",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "ci-install": "npm ci",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "luxon": "^3.7.2"
+  }
+}
