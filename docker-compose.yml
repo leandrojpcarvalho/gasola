@@ -1,0 +1,33 @@
+services:
+  db:
+    container_name: db-postgres
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: jogodaforca
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - jogodaforca
+
+  redis:
+    container_name: redis-cache
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - jogodaforca
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  jogodaforca:
