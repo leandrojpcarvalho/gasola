@@ -20,7 +20,5 @@ export enum ESocketEventos {
   CONECTAR = "conectar",
   DESCONECTAR = "desconectar",
   NOVO_JOGO = "novo_jogo",
-  JOGADA = "jogada",
-  FINALIZAR_JOGO = "finalizar_jogo",
   ATUALIZAR_PARTIDA = "atualizar_partida",
 }

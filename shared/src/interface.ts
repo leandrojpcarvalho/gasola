@@ -11,6 +11,7 @@ export interface IJogo extends ModeloBase {
   idUsuario: number;
   idPalavra: number;
   pontuacao: number;
+  dificuldade: EDificuldade;
   resultado: EEstadoDeJogo;
 }
 
