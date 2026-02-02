@@ -2,6 +2,7 @@ import { ITema, CriacaoTema } from 'jogodaforca-shared'
 import Tema from '#models/tema'
 
 import { Servico } from './interface.js'
+import { TransactionClientContract } from '@adonisjs/lucid/types/database'
 
 export class ServicoTema implements Servico<ITema> {
   constructor(private modelo = Tema) {}
@@ -18,8 +19,12 @@ export class ServicoTema implements Servico<ITema> {
     }
   }
 
-  async criar(dado: CriacaoTema) {
-    const temaExistente = await this.verificarExistencia(dado.valor)
+  async pegarTemaPorValor(dado: string, trx?: TransactionClientContract) {
+    return this.modelo.query({ client: trx }).where('valor', dado).first()
+  }
+
+  async criar(dado: CriacaoTema & { trx?: TransactionClientContract }) {
+    const temaExistente = await this.pegarTemaPorValor(dado.valor, dado.trx)
 
     if (temaExistente) {
       return {
@@ -29,7 +34,7 @@ export class ServicoTema implements Servico<ITema> {
       }
     }
 
-    const tema = await this.modelo.create(dado)
+    const tema = await this.modelo.create(dado, { client: dado.trx })
     return {
       mensagem: 'Tema criado com sucesso',
       codigoDeStatus: 201,
@@ -37,7 +42,8 @@ export class ServicoTema implements Servico<ITema> {
     }
   }
 
-  private async verificarExistencia(nome: string) {
-    return this.modelo.query().where('nome', nome).first()
+  async listar() {
+    const temas = await this.modelo.all()
+    return temas
   }
 }

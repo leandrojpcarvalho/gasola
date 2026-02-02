@@ -1,19 +1,22 @@
 import { belongsTo, column } from '@adonisjs/lucid/orm'
-import { EEstadoDeJogo, IJogo } from 'jogodaforca-shared'
+import { EDificuldade, EEstadoDeJogo, IJogo } from 'jogodaforca-shared'
 import Usuario from './usuario.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Palavra from './palavra.js'
 import ModeloBase from './modelo_base.js'
 
 export default class Jogo extends ModeloBase implements IJogo {
-  @column()
+  @column({ columnName: 'id_usuario' })
   declare idUsuario: number
 
-  @column()
+  @column({ columnName: 'id_palavra' })
   declare idPalavra: number
 
   @column()
   declare pontuacao: number
+
+  @column()
+  declare dificuldade: EDificuldade
 
   @column()
   declare resultado: EEstadoDeJogo

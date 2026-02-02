@@ -1,4 +1,4 @@
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { column } from '@adonisjs/lucid/orm'
 import { ITema } from 'jogodaforca-shared'
 import ModeloBase from './modelo_base.js'
 

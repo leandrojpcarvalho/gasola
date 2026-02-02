@@ -17,10 +17,10 @@ export default class Palavra extends ModeloBase implements IPalavra {
   @column()
   declare valor: string
 
-  @column()
+  @column({ columnName: 'id_tema' })
   declare idTema: number
 
-  @column()
+  @column({ columnName: 'dica_gerada_por_ia' })
   declare dicaGeradaPorIA: string | null
 
   @belongsTo(() => Tema)
