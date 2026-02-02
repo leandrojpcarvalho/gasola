@@ -43,7 +43,7 @@ export class ServicoTema implements Servico<ITema> {
   }
 
   async listar() {
-    const temas = await this.modelo.all()
+    const temas = await this.modelo.query().orderBy('valor', 'asc')
     return temas
   }
 }

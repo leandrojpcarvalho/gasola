@@ -3,6 +3,7 @@ import { Servico } from './interface.js'
 import {
   CriacaoUsuario,
   EDificuldade,
+  EEstadoDeJogo,
   Historico,
   IUsuario,
   RespostaServico,
@@ -70,7 +71,7 @@ export class ServicoUsuario implements Servico<IUsuario, Omit<IUsuario, 'senha'>
     const data = await Usuario.accessTokens.create(emailExistente)
     return {
       mensagem: 'Usuário já existe',
-      codigoDeStatus: 200,
+      codigoDeStatus: 409,
       data: data.value?.release(),
     }
   }
@@ -97,9 +98,6 @@ export class ServicoUsuario implements Servico<IUsuario, Omit<IUsuario, 'senha'>
   public async obterHistorico(idUsuario: number): RespostaServico<Historico[]> {
     const jogos = await this.modelo
       .query()
-      .innerJoin('jogos', 'usuarios.id', 'jogos.id_usuario')
-      .innerJoin('palavras', 'jogos.id_palavra', 'palavras.id')
-      .where('usuarios.id', idUsuario)
       .select(
         'jogos.id as idJogo',
         'palavras.valor as palavra',
@@ -108,11 +106,14 @@ export class ServicoUsuario implements Servico<IUsuario, Omit<IUsuario, 'senha'>
         'jogos.dificuldade as dificuldade',
         'jogos.criado_em as criadoEm'
       )
+      .innerJoin('jogos', 'usuarios.id', 'jogos.id_usuario')
+      .innerJoin('palavras', 'jogos.id_palavra', 'palavras.id')
+      .where('usuarios.id', idUsuario)
       .orderBy('jogos.criado_em', 'desc')
 
     const data = jogos.map<Historico>((j) => ({
       idJogo: j.$extras.idJogo,
-      palavra: j.$extras.palavra,
+      palavra: j.$extras.resultado === EEstadoDeJogo.ATIVO ? '***' : j.$extras.palavra,
       criadoEm: j.$extras.criadoEm,
       dificuldade: j.$attributes.dificuldade,
       pontuacao: j.$extras.pontuacao,
