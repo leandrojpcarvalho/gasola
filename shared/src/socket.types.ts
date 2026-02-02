@@ -1,5 +1,5 @@
-// Tipos do frontend Socket
 
+// region  Tipos do frontend Socket
 import { EDificuldade } from "./enum";
 import { SessaoDeJogo } from "./type";
 
@@ -47,7 +47,9 @@ export type AtualizarPartidaFront =
   | RestaurarJogo
   | SolicitarDica;
 
-// Tipos do backend Socket
+//endregion
+
+// region Tipos do backend Socket
 
 export type ErroRespostaApi = {
   sucesso: false;
@@ -91,3 +93,5 @@ export type RespostaAtualizarJogo =
   | RespostaFinalizarJogo
   | RespostaCarregarJogo
   | RespostaCarregarJogo;
+
+// endregion
