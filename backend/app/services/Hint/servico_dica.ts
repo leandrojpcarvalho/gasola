@@ -1,12 +1,13 @@
 import { EDificuldade, RespostaServico } from 'jogodaforca-shared'
 import Palavra from '#models/palavra'
-import { Dicionario, ServicoOpenAI, ServicoPalavra, ServicoTema } from '#services/index'
+import { Dicionario, ServicoPalavra, ServicoTema } from '#services/index'
+import { AIServiceFactory } from '#services/integrations/ai_service_factory'
 
 export class ServicoDica {
   constructor(
     private servicoPalavra = new ServicoPalavra(),
     private servicoTema = new ServicoTema(),
-    private servicoOpenAI = ServicoOpenAI.getInstance(),
+    private aiService = AIServiceFactory.getInstance(),
     private servicoDicionario = new Dicionario()
   ) {}
 
@@ -19,7 +20,7 @@ export class ServicoDica {
       }
     }
 
-    if (!this.servicoOpenAI) {
+    if (!this.aiService?.isAvailable()) {
       const { data: mTema } = await this.servicoTema.criar({
         valor: 'Geral',
       })
@@ -53,7 +54,7 @@ export class ServicoDica {
   }
 
   private async cadastrarPalavraGeradaPorIA(palavraStr: string): RespostaServico<Palavra> {
-    if (!this.servicoOpenAI) {
+    if (!this.aiService?.isAvailable()) {
       return {
         mensagem: 'Serviço de IA não está disponível.',
         codigoDeStatus: 503,
@@ -69,7 +70,7 @@ export class ServicoDica {
       }
     }
 
-    const respostaIA = await this.servicoOpenAI.gerarDica(palavraStr)
+    const respostaIA = await this.aiService.gerarDica(palavraStr)
     if (!respostaIA) {
       return {
         mensagem: 'Não foi possível gerar dica pela IA.',
@@ -77,16 +78,21 @@ export class ServicoDica {
       }
     }
 
-    const { dica, dificuldade, tema } = respostaIA
+    const { dica } = respostaIA
+
+    // Buscar informações adicionais da palavra (tema e dificuldade)
+    const palavrasGeradas = await this.aiService.gerarPalavras(palavraStr, 1)
+    const palavraInfo = palavrasGeradas?.[0]
+
     const { data: mTema } = await this.servicoTema.criar({
-      valor: tema,
+      valor: palavraInfo?.dicas?.[0] ?? 'Geral',
     })
 
     const { data: mPalavra } = await this.servicoPalavra.criar({
       valor: palavraStr,
       idTema: mTema.id,
-      dificuldade,
-      dicas: ['Sem dica disponível'],
+      dificuldade: palavraInfo?.dificuldade ?? ServicoDica.dificuldadePorTamanho(palavraStr),
+      dicas: palavraInfo?.dicas ?? ['Sem dica disponível'],
       dicaGeradaPorIA: dica,
     })
 
@@ -99,10 +105,11 @@ export class ServicoDica {
 
   private static dificuldadePorTamanho(str: string): EDificuldade {
     const len = str.trim().length
+    const letrasRepetidas = new Set(str.toLowerCase().split('')).size
 
-    if (len < 5) {
+    if (len < 5 && letrasRepetidas <= 3) {
       return EDificuldade.FACIL
-    } else if (len <= 8) {
+    } else if (len <= 8 && letrasRepetidas <= 5) {
       return EDificuldade.MEDIO
     } else {
       return EDificuldade.DIFICIL

@@ -19,6 +19,7 @@ import { ServicoJogo } from '#services/Jogo/jogo'
 import { AtualizadorDeJogo, OrquestradorJogo } from '#services/Jogo/index'
 import { ServicoPalavra } from '#services/palavra'
 import env from '#start/env'
+import { AIServiceFactory } from '#services/integrations/ai_service_factory'
 
 type ExecutarResposta<T> = {
   fn: (param: HandlerParameters<T>) => Promise<void>
@@ -62,10 +63,11 @@ export class WsService {
   }
 
   private solicitarConexao(socket: Socket) {
-    const ia = env.get('OPENAI_API_KEY') ? true : false
+    const ia = AIServiceFactory.isAvailable()
     return socket.on(ESocketEventos.CONECTAR, () => {
       const resposta: RespostaConectar = {
         sucesso: true,
+        type: 'inicializado',
         dado: {
           ia,
           message: 'Conexão estabelecida com sucesso',
@@ -153,6 +155,7 @@ export class WsService {
 
       const resposta: RespostaCarregarJogo = {
         sucesso: true,
+        type: 'carregado',
         dado: atualizador.jogoEstado,
       }
       socket.emit(ESocketEventos.ATUALIZAR_PARTIDA, resposta)
@@ -170,6 +173,7 @@ export class WsService {
       }
       const resposta: RespostaCarregarJogo = {
         sucesso: true,
+        type: 'carregado',
         dado: dado.data,
       }
       socket.emit(ESocketEventos.ATUALIZAR_PARTIDA, resposta)
@@ -183,6 +187,7 @@ export class WsService {
     if (novoJogo.data) {
       const resposta: RespostaCarregarJogo = {
         sucesso: true,
+        type: 'carregado',
         dado: novoJogo.data,
       }
       socket.emit(ESocketEventos.NOVO_JOGO, resposta)
@@ -218,9 +223,9 @@ export class WsService {
           codigoDeStatus: 200,
         }
       } else {
-        // Gera nova dica via OpenAI
-        const servicoOpenAI = this.orquestradorJogo.servicoOpenAI
-        if (!servicoOpenAI) {
+        // Gera nova dica via IA
+        const aiService = this.orquestradorJogo.aiService
+        if (!aiService?.isAvailable()) {
           this.gerarRespostaErro(
             { mensagem: 'Serviço de IA não disponível', codigoDeStatus: 503 },
             socket,
@@ -229,7 +234,7 @@ export class WsService {
           return
         }
 
-        const dicaIA = await servicoOpenAI.gerarDica(palavraResult.data.valor)
+        const dicaIA = await aiService.gerarDica(palavraResult.data.valor)
         if (!dicaIA) {
           this.gerarRespostaErro(
             { mensagem: 'Erro ao gerar dica via IA', codigoDeStatus: 500 },
@@ -268,6 +273,7 @@ export class WsService {
 
     const dado: RespostaCarregarJogo = {
       sucesso: true,
+      type: 'carregado',
       dado: atualizador.jogoEstado,
     }
 
@@ -302,6 +308,7 @@ export class WsService {
       if (novoJogo.data) {
         const resposta: RespostaCarregarJogo = {
           sucesso: true,
+          type: 'carregado',
           dado: novoJogo.data,
         }
         socket.emit(ESocketEventos.NOVO_JOGO, resposta)

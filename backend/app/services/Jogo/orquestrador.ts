@@ -1,13 +1,7 @@
 import { Criacao, EDificuldade, SessaoDeJogo } from 'jogodaforca-shared'
-import {
-  ServicoPalavra,
-  ServicoTema,
-  ServicoUsuario,
-  Servico,
-  ServicoOpenAI,
-} from '#services/index'
+import { ServicoPalavra, ServicoTema, ServicoUsuario, Servico } from '#services/index'
+import { AIServiceFactory } from '../integrations/ai_service_factory.js'
 import { ServicoJogo } from './jogo.js'
-import env from '#start/env'
 import db from '@adonisjs/lucid/services/db'
 import { TransactionClientContract } from '@adonisjs/lucid/types/database'
 
@@ -26,7 +20,7 @@ export class OrquestradorJogo implements Servico<NovoJogo, SessaoDeJogo> {
     private sevicoUsuario = new ServicoUsuario(),
     private servicoPalavra = new ServicoPalavra(),
     private servicoTema = new ServicoTema(),
-    public servicoOpenAI = ServicoOpenAI.getInstance()
+    public aiService = AIServiceFactory.getInstance()
   ) {}
 
   async pegarPorId(id: number) {
@@ -57,14 +51,21 @@ export class OrquestradorJogo implements Servico<NovoJogo, SessaoDeJogo> {
   }
 
   public async criarTemaEPalavra(dado: Criacao<CriacaoDeJogoComTema>) {
-    if (!env.get('OPENAI_API_KEY') || this.servicoOpenAI === null) {
+    if (!this.aiService?.isAvailable()) {
       return {
-        mensagem: 'Criação de tema dinâmico indisponível. Chave da API OpenAI não configurada.',
+        mensagem: 'Criação de tema dinâmico indisponível. Serviço de IA não configurado.',
         codigoDeStatus: 503,
       }
     }
     try {
-      const palavras = await this.servicoOpenAI.gerarPalavra(dado.tema)
+      const palavras = await this.aiService.gerarPalavras(dado.tema, 3)
+      if (!palavras || palavras.length === 0) {
+        return {
+          mensagem: 'Não foi possível gerar palavras para o tema informado.',
+          codigoDeStatus: 500,
+        }
+      }
+
       return db.transaction(async (trx) => {
         let tema = await this.servicoTema.pegarTemaPorValor(dado.tema)
         if (!tema) {

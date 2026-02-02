@@ -5,7 +5,6 @@ import {
   EDificuldade,
   Historico,
   IUsuario,
-  RespostaApi,
   RespostaServico,
 } from 'jogodaforca-shared'
 

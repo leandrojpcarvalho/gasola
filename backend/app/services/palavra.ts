@@ -49,7 +49,6 @@ export class ServicoPalavra implements Servico<IPalavra> {
 
   async pegarPalavraPorTema(idTema: number) {
     const palavras = await this.modelo.query().where('id_tema', idTema)
-    console.log('Palavras encontradas para o tema:', palavras)
     if (palavras.length === 0) {
       return { mensagem: 'Nenhuma palavra encontrada', codigoDeStatus: 404 }
     }
