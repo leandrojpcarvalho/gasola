@@ -1,12 +1,6 @@
-import { EDificuldade } from 'jogodaforca-shared'
+import { EDificuldade, RespostaServico } from 'jogodaforca-shared'
 import Palavra from '#models/palavra'
-import {
-  Dicionario,
-  ServicoOpenAI,
-  ServicoPalavra,
-  ServicoTema,
-  RespostaServico,
-} from '#services/index'
+import { Dicionario, ServicoOpenAI, ServicoPalavra, ServicoTema } from '#services/index'
 
 export class ServicoDica {
   constructor(
