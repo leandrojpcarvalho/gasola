@@ -7,7 +7,6 @@ class KeyboardSoundManager {
   private isMuted: boolean = false;
 
   constructor() {
-    // Inicializa AudioContext de forma lazy
     if (typeof window !== 'undefined' && 'AudioContext' in window) {
       this.audioContext = new AudioContext();
     }
