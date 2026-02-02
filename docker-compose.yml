@@ -1,17 +1,4 @@
 services:
-  frontend: 
-    container_name: jogodaforca-frontend
-    build: 
-      context: .
-      dockerfile: frontend/Dockerfile
-    restart: always
-    ports:
-      - "5173:5173"
-    networks:
-      - jogodaforca
-    volumes:
-      - ./frontend:/app
-      - ./shared:/shared
   db:
     container_name: db-postgres
     image: postgres:16
@@ -26,6 +13,12 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - jogodaforca
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d jogodaforca"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   redis:
     container_name: redis-cache
@@ -37,6 +30,68 @@ services:
       - redisdata:/data
     networks:
       - jogodaforca
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  backend:
+    container_name: jogodaforca-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    ports:
+      - "3333:3333"
+    networks:
+      - jogodaforca
+    volumes:
+      - ./backend:/app
+      - ./shared:/shared
+      - /shared/node_modules
+      - /app/node_modules
+    environment:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3333/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); });"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  frontend: 
+    container_name: jogodaforca-frontend
+    build: 
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: always
+    ports:
+      - "5173:5173"
+    networks:
+      - jogodaforca
+    volumes:
+      - ./frontend:/app
+      - ./shared:/shared
+      - /app/node_modules
+      - /shared/node_modules
+    environment:
+      - ./frontend/.env
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 volumes:
   pgdata:
