@@ -1,5 +1,5 @@
 import { Heart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 interface VidaProps {
     vidas: number;
@@ -12,17 +12,21 @@ export function Vida({ vidas, vidasMax = 6 }: VidaProps) {
 
     useEffect(() => {
         if (vidas < vidasAtual) {
-            // Vida foi perdida
-            const indexRemovido = vidas;
-            setRemovendoIndex(indexRemovido);
 
-            // Aguarda animação terminar antes de atualizar
+            const indexRemovido = vidas;
+            startTransition(() => {
+                setRemovendoIndex(indexRemovido);
+            })
+
+
             setTimeout(() => {
                 setVidasAtual(vidas);
                 setRemovendoIndex(null);
             }, 800);
         } else {
-            setVidasAtual(vidas);
+            startTransition(() => {
+                setVidasAtual(vidas);
+            })
         }
     }, [vidas, vidasAtual]);
 

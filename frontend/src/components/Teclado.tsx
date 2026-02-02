@@ -35,10 +35,8 @@ export function Teclado({ pressionarTecla, letrasErradas, letrasCorretas, desabi
     };
 
     const handleKeyClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        // Toca som de clique
         keyboardSounds.playKeyPress();
-        
-        // Chama o handler original
+
         pressionarTecla(event);
     };
 

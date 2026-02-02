@@ -8,7 +8,6 @@ export function useJogo(socket: ReturnType<typeof useSocket>) {
   const [letrasCorretas, setLetrasCorretas] = useState<string[]>([]);
   const [letrasIncorretas, setLetrasIncorretas] = useState<string[]>([]);
 
-  // Refs para controlar sons apenas nas mudanças
   const prevLetrasCorretas = useRef<number>(0);
   const prevLetrasIncorretas = useRef<number>(0);
   const prevEstado = useRef<EEstadoDeJogo>(EEstadoDeJogo.ATIVO);
@@ -27,17 +26,14 @@ export function useJogo(socket: ReturnType<typeof useSocket>) {
       setLetrasCorretas(estadoDoJogo.letrasCorretas);
     }
     atualizarLetras();
-    // Toca som de acerto se aumentou letras corretas
     if (estadoDoJogo.letrasCorretas.length > prevLetrasCorretas.current) {
       keyboardSounds.playCorrect();
     }
 
-    // Toca som de erro se aumentou letras erradas
     if (estadoDoJogo.letrasErradas.length > prevLetrasIncorretas.current) {
       keyboardSounds.playWrong();
     }
 
-    // Toca som de vitória ou derrota
     if (estadoDoJogo.estado !== prevEstado.current) {
       if (estadoDoJogo.estado === EEstadoDeJogo.VITORIA) {
         setTimeout(() => keyboardSounds.playVictory(), 300);
@@ -46,7 +42,6 @@ export function useJogo(socket: ReturnType<typeof useSocket>) {
       }
     }
 
-    // Atualiza refs
     prevLetrasCorretas.current = estadoDoJogo.letrasCorretas.length;
     prevLetrasIncorretas.current = estadoDoJogo.letrasErradas.length;
     prevEstado.current = estadoDoJogo.estado;

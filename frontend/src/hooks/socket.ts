@@ -20,7 +20,6 @@ import { useState, useEffect } from "react";
 import { alert } from "../utils/alert";
 import { useNavigate } from "react-router-dom";
 
-// Socket singleton - criado apenas uma vez
 let socketInstance: Socket | null = null;
 
 function getSocket() {
@@ -32,7 +31,7 @@ function getSocket() {
 
     socketInstance = io(baseURL, {
       auth: { token },
-      autoConnect: false, // Não conectar automaticamente
+      autoConnect: false,
     });
   }
   return socketInstance;

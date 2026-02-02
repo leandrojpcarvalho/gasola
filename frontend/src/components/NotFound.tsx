@@ -1,5 +1,4 @@
 export function NotFound() {
-    // refatorar utilizando componentes de estilo já existentes e tailwindcss com tematica de jogo da forca se possivel colocar uma pessoa enforcada ou algo do tipo
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background">
             <h1 className="text-9xl font-bold text-muted-foreground/30">404</h1>
