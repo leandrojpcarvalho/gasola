@@ -54,32 +54,38 @@ export type ErroRespostaApi = {
   mensagem: string;
 };
 
-export type SucessoRespostaApi<T> = {
+type SucessoRespostaTipo =
+  | "carregado"
+  | "finalizado"
+  | "desconectado"
+  | "inicializado";
+
+export type SucessoRespostaApi<T, R extends SucessoRespostaTipo> = {
   sucesso: true;
+  type: R;
   dado: T;
 };
 
-export type RespostaApi<T> = ErroRespostaApi | SucessoRespostaApi<T>;
+export type RespostaApi<T, R extends SucessoRespostaTipo> =
+  | ErroRespostaApi
+  | SucessoRespostaApi<T, R>;
 
 export type Estado = Omit<SessaoDeJogo, "palavra" | "idUsuario"> & {
   palavra: string[];
 };
 
-export type RespostaConectar = RespostaApi<{
+type RespostaConectarDado = {
   ia: boolean;
   message: string;
-}>;
+};
 
-export type RespostaDesconectar = RespostaApi<{
-  type: "desconectado";
-}>;
-
-export type RespostaFinalizarJogo = RespostaApi<{
-  type: "finalizado";
-  idJogo: number;
-}>;
-
-export type RespostaCarregarJogo = RespostaApi<Estado>;
+export type RespostaConectar = RespostaApi<
+  RespostaConectarDado,
+  "inicializado"
+>;
+export type RespostaDesconectar = RespostaApi<number, "desconectado">;
+export type RespostaFinalizarJogo = RespostaApi<number, "finalizado">;
+export type RespostaCarregarJogo = RespostaApi<Estado, "carregado">;
 
 export type RespostaAtualizarJogo =
   | RespostaFinalizarJogo

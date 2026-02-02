@@ -18,6 +18,7 @@ import {
 } from "jogodaforca-shared";
 import { useState, useEffect } from "react";
 import { alert } from "../utils/alert";
+import { useNavigate } from "react-router-dom";
 
 // Socket singleton - criado apenas uma vez
 let socketInstance: Socket | null = null;
@@ -41,16 +42,8 @@ export function useSocket(usuario: Usuario | null) {
   const socketCliente = getSocket();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHint, setIsLoadingHint] = useState(false);
-  const [estadoDoJogo, setEstadoDoJogo] = useState<Estado>({
-    idJogo: 0,
-    estado: EEstadoDeJogo.ATIVO,
-    maxTentativas: 6,
-    palavra: [],
-    pontuacaoAtual: 0,
-    dicasUtilizadas: [],
-    letrasCorretas: [],
-    letrasErradas: [],
-  });
+  const nav = useNavigate();
+  const [estadoDoJogo, setEstadoDoJogo] = useState<Estado | null>(null);
 
   function solicitarRestaurarJogo(idJogo: number) {
     if (usuario) {
@@ -61,6 +54,14 @@ export function useSocket(usuario: Usuario | null) {
       };
       socketCliente.emit(ESocketEventos.ATUALIZAR_PARTIDA, dadosRestaurarJogo);
     }
+  }
+
+  function irParaJogar() {
+    nav("/jogar");
+  }
+
+  function irParaPaginaInicial() {
+    nav("/");
   }
 
   function finalizarJogo(idJogo: number) {
@@ -92,6 +93,7 @@ export function useSocket(usuario: Usuario | null) {
   }
 
   function pedirHint() {
+    if (!estadoDoJogo) return;
     setIsLoadingHint(true);
     const dica: SolicitarDica = {
       type: "dica",
@@ -102,13 +104,14 @@ export function useSocket(usuario: Usuario | null) {
   }
 
   useEffect(() => {
+    if (!estadoDoJogo) return;
     if (estadoDoJogo.estado !== EEstadoDeJogo.ATIVO) {
       armazenamentoLocal({
         acao: "remover",
         chave: "jogoId",
       });
     }
-  }, [estadoDoJogo.estado]);
+  }, [estadoDoJogo]);
 
   useEffect(() => {
     const handleAtualizarPartida = (novoEstado: RespostaAtualizarJogo) => {
@@ -118,10 +121,19 @@ export function useSocket(usuario: Usuario | null) {
         alert(400, "Erro", novoEstado.mensagem);
         return;
       }
-      if (typeof novoEstado.dado === "object") {
-        const dadosJogo = novoEstado.dado;
+      if (novoEstado.type === "carregado") {
+        if (novoEstado.dado.estado !== EEstadoDeJogo.ATIVO) {
+          setEstadoDoJogo(null);
+          return;
+        }
+        setEstadoDoJogo(novoEstado.dado);
+        irParaJogar();
+        return;
+      }
 
-        setEstadoDoJogo((prev) => ({ ...prev, ...dadosJogo }));
+      if (novoEstado.type === "finalizado") {
+        setEstadoDoJogo(null);
+        irParaPaginaInicial();
         return;
       }
     };
@@ -129,15 +141,15 @@ export function useSocket(usuario: Usuario | null) {
     const handleNovoJogo = (novoJogo: RespostaCarregarJogo) => {
       setIsLoading(false);
       if (novoJogo.sucesso) {
-        setEstadoDoJogo((prev) => ({
-          ...prev,
-          ...novoJogo.dado,
-        }));
+        if (novoJogo.type === "carregado") {
+          setEstadoDoJogo(novoJogo.dado);
+        }
         armazenamentoLocal({
           acao: "atribuir",
           chave: "jogoId",
           valor: novoJogo.dado.idJogo.toString(),
         });
+        irParaJogar();
       } else {
         alert(400, "Novo Jogo", "Não foi possível iniciar um novo jogo.");
       }
