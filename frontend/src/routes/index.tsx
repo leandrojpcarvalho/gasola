@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import { Historico, Index, Jogo, Layout, Login, Ranking } from "../views/index";
+import { Jogo, Layout, Login, Cadastro, Ranking, PaginaInicial } from "../views/index";
 import { NotFound } from "../components/NotFound";
 import { Usuario } from "../views/Usuario";
 
@@ -10,11 +10,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Index />,
+        element: <PaginaInicial />,
       },
       {
         path: "/login",
         element: <Login />,
+      },
+      {
+        path: "/cadastro",
+        element: <Cadastro />,
       },
       {
         path: "/jogar",
@@ -27,12 +31,6 @@ export const router = createBrowserRouter([
       {
         path: "/usuario",
         element: <Usuario />,
-        children: [
-          {
-            path: "historico",
-            element: <Historico />,
-          }
-        ],
       }
     ]
   },

@@ -1,9 +1,9 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { useUsuario, type UsuarioHook } from "../hooks/usuario";
 import { obterUUID } from "../utils/gerarUUID";
 import { useSocket } from "../hooks/socket";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Carregando } from "../components/Carregando";
 import { Modal } from "../components/Modal";
 import { Button } from "../components/Button";
@@ -15,10 +15,7 @@ export function Layout() {
     obterUUID();
     const hookUsuario = useUsuario();
     const realTimeSocket = useSocket(hookUsuario.usuario);
-    const location = useLocation();
     const nav = useNavigate();
-    const [displayLocation, setDisplayLocation] = useState(location);
-    const [transitionStage, setTransitionStage] = useState("fadeIn");
     const [jogoId, setJogoId] = useState(() => {
         const jogoId = armazenamentoLocal({
             acao: "obter",
@@ -53,7 +50,6 @@ export function Layout() {
         if (hookUsuario.usuario) {
             const idUsuario = hookUsuario.usuario.id;
             realTimeSocket.novoJogoTemaIA(tema, idUsuario);
-            nav("/jogar");
             return;
         }
     }
@@ -66,25 +62,10 @@ export function Layout() {
                 idUsuario,
                 temaId
             });
-            nav("/jogar");
             return;
         }
         alert(400, "Nova Partida", "Recarregue a página para autenticar o usuário ou faça login.");
     }
-
-    useEffect(() => {
-        if (location.pathname !== displayLocation.pathname) {
-            function fadeOut() {
-                setTransitionStage("fadeOut");
-            }
-            fadeOut();
-            const timer = setTimeout(() => {
-                setTransitionStage("fadeIn");
-                setDisplayLocation(location);
-            }, 300); // Apenas tempo da animação CSS
-            return () => clearTimeout(timer);
-        }
-    }, [location, displayLocation]);
 
     return (
         <>
@@ -96,11 +77,11 @@ export function Layout() {
                         <h2 className="text-2xl font-semibold mb-4">Bem vindo de volta: {hookUsuario.usuario?.nome.toLowerCase().startsWith("guest") ? "Convidado" : hookUsuario.usuario?.nome}</h2>
                         <p className="mb-2">Notamos que há um jogo em aberto, deseja Continuar?</p>
                         <Button className="btn-primary mr-2" label="Continuar Jogo" onClick={() => { restaurarJogoAberto(true) }} />
-                        <Button className="btn-secondary" label="cancelar" onClick={() => { restaurarJogoAberto(false) }} />
+                        <Button className="btn-ghost" label="Cancelar" onClick={() => { restaurarJogoAberto(false) }} />
                     </div>
                 </Modal>}
-            <main className={`container mx-auto px-4 py-6 flex-auto route-transition-${transitionStage}`}>
-                <Outlet context={{ usuario: hookUsuario, realTimeSocket, partidaViaIA, iniciarPartida }} key={displayLocation.pathname} />
+            <main className={`container mx-auto px-4 py-6 flex-auto route-transition-fade`}>
+                <Outlet context={{ usuario: hookUsuario, realTimeSocket, partidaViaIA, iniciarPartida }} />
             </main>
         </>
     );

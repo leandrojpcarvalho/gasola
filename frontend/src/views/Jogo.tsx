@@ -12,6 +12,7 @@ import { Dica } from "../components/Dica";
 import { Score } from "../components/Score";
 import { ConfiguraPartida } from "../components/ConfiguraPartida";
 import { Modal } from "../components/Modal";
+import { Ranking } from "./Ranking";
 
 
 export function Jogo() {
@@ -23,6 +24,7 @@ export function Jogo() {
     const nav = useNavigate();
 
     function calcularVidasRestantes() {
+        if (!estadoDoJogo) return 0;
         return estadoDoJogo.maxTentativas - estadoDoJogo.letrasErradas.length;
     }
 
@@ -42,16 +44,16 @@ export function Jogo() {
         nav("/");
     }
 
-    useEffect(() => {
-        if (estadoDoJogo.palavra.length === 0) {
-            nav("/");
-        }
-    }, [estadoDoJogo.palavra.length, nav]);
 
     useEffect(() => {
-    }, [estadoDoJogo.estado]);
+    }, [estadoDoJogo]);
+
+    if (!estadoDoJogo) {
+        return <Ranking />;
+    }
 
     return (
+
         <div>
             <JogarNovamente
                 estadoDoJogo={estadoDoJogo.estado}
