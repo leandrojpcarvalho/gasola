@@ -8,7 +8,6 @@ test.group('Tema - Listar', (group) => {
   group.each.setup(() => testUtils.db().truncate())
 
   test('deve listar todos os temas para usuário autenticado', async ({ client, assert }) => {
-    // Criar usuário
     const usuario = await Usuario.create({
       nome: 'Teste User',
       email: 'teste@tema.com',
@@ -16,15 +15,12 @@ test.group('Tema - Listar', (group) => {
       dificuldade: EDificuldade.MEDIO,
     })
 
-    // Criar temas
     await Tema.create({ valor: 'Animais' })
     await Tema.create({ valor: 'Cores' })
     await Tema.create({ valor: 'Frutas' })
 
-    // Fazer login
     const token = await Usuario.accessTokens.create(usuario)
 
-    // Listar temas
     const response = await client.get('/tema/listar').bearerToken(token.value!.release())
 
     response.assertStatus(200)
@@ -37,7 +33,6 @@ test.group('Tema - Listar', (group) => {
   })
 
   test('deve retornar array vazio se não houver temas', async ({ client, assert }) => {
-    // Criar usuário
     const usuario = await Usuario.create({
       nome: 'Teste User',
       email: 'teste@semtemas.com',
@@ -45,10 +40,8 @@ test.group('Tema - Listar', (group) => {
       dificuldade: EDificuldade.MEDIO,
     })
 
-    // Fazer login
     const token = await Usuario.accessTokens.create(usuario)
 
-    // Listar temas (banco vazio)
     const response = await client.get('/tema/listar').bearerToken(token.value!.release())
 
     response.assertStatus(200)
@@ -63,7 +56,6 @@ test.group('Tema - Listar', (group) => {
   })
 
   test('deve retornar temas únicos (sem duplicatas)', async ({ client, assert }) => {
-    // Criar usuário
     const usuario = await Usuario.create({
       nome: 'Teste User',
       email: 'teste@unicos.com',
@@ -71,32 +63,26 @@ test.group('Tema - Listar', (group) => {
       dificuldade: EDificuldade.MEDIO,
     })
 
-    // Criar temas (tentando duplicar)
     await Tema.create({ valor: 'Esportes' })
-    // Não deveria permitir duplicatas devido à constraint unique no banco
     try {
       await Tema.create({ valor: 'Esportes' })
     } catch (error) {
-      // Esperado: erro de constraint unique
+      // Ignorar erro de duplicata
     }
 
-    // Fazer login
     const token = await Usuario.accessTokens.create(usuario)
 
-    // Listar temas
     const response = await client.get('/tema/listar').bearerToken(token.value!.release())
 
     response.assertStatus(200)
     assert.isArray(response.body().data)
 
-    // Verificar que não há duplicatas
     const valores = response.body().data.map((t: any) => t.valor)
     const valoresUnicos = [...new Set(valores)]
     assert.lengthOf(valores, valoresUnicos.length)
   })
 
   test('deve retornar temas ordenados alfabeticamente', async ({ client, assert }) => {
-    // Criar usuário
     const usuario = await Usuario.create({
       nome: 'Teste User',
       email: 'teste@ordem.com',
@@ -104,15 +90,12 @@ test.group('Tema - Listar', (group) => {
       dificuldade: EDificuldade.MEDIO,
     })
 
-    // Criar temas em ordem aleatória
     await Tema.create({ valor: 'Zebras' })
     await Tema.create({ valor: 'Aves' })
     await Tema.create({ valor: 'Mamíferos' })
 
-    // Fazer login
     const token = await Usuario.accessTokens.create(usuario)
 
-    // Listar temas
     const response = await client.get('/tema/listar').bearerToken(token.value!.release())
 
     response.assertStatus(200)

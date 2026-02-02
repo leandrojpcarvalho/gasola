@@ -45,7 +45,6 @@ test.group('Usuario - Guest', (group) => {
 
     response.assertStatus(201)
 
-    // Verificar se o usuário foi criado com nome correto
     const infoResponse = await client
       .get('/usuario/info')
       .bearerToken(response.body().data.replace('usrNQ.', ''))
