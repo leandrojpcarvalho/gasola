@@ -1,4 +1,5 @@
 import type React from "react";
+import { keyboardSounds } from "../utils/keyboard_sounds";
 
 interface KeyboardProps {
     pressionarTecla: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -33,6 +34,14 @@ export function Teclado({ pressionarTecla, letrasErradas, letrasCorretas, desabi
         return desabilitado || letrasErradas.has(lowerLetter) || letrasCorretas.has(lowerLetter);
     };
 
+    const handleKeyClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        // Toca som de clique
+        keyboardSounds.playKeyPress();
+        
+        // Chama o handler original
+        pressionarTecla(event);
+    };
+
     return (
         <div className="flex flex-col items-center gap-1.5 sm:gap-2">
             {KEYBOARD_ROWS.map((row, rowIndex) => (
@@ -40,7 +49,7 @@ export function Teclado({ pressionarTecla, letrasErradas, letrasCorretas, desabi
                     {row.map((letter) => (
                         <button
                             key={letter}
-                            onClick={pressionarTecla}
+                            onClick={handleKeyClick}
                             disabled={isKeyDisabled(letter)}
                             className={`
                 keyboard-key
