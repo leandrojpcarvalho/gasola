@@ -14,12 +14,10 @@ export class AIServiceFactory {
    * @returns Serviço de IA ou null se nenhum estiver configurado
    */
   public static getInstance(): ServiceIAInterface | null {
-    // Cache da instância
     if (this.instance !== undefined) {
       return this.instance
     }
 
-    // Depois tenta OpenAI
     const openai = ServicoOpenAI.getInstance()
     if (openai && openai.isAvailable()) {
       console.log('✅ Usando OpenAI como provedor de IA')
@@ -27,7 +25,6 @@ export class AIServiceFactory {
       return this.instance
     }
 
-    // Tenta Gemini primeiro
     const gemini = ServicoGemini.getInstance()
     if (gemini && gemini.isAvailable()) {
       console.log('✅ Usando Gemini como provedor de IA')
@@ -35,7 +32,6 @@ export class AIServiceFactory {
       return this.instance
     }
 
-    // Nenhum serviço disponível
     console.warn('⚠️  Nenhum serviço de IA configurado (OPENAI_API_KEY ou GEMINI_API_KEY)')
     this.instance = null
     return null

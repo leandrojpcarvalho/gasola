@@ -113,49 +113,10 @@ export class ServicoOpenAI implements ServiceIAInterface {
       throw new Error('Resposta da OpenAI não é válida')
     }
 
-    // Mapear strings para enum EDificuldade
     return validated.map((palavra) => ({
       ...palavra,
       dificuldade: palavra.dificuldade as EDificuldade,
     }))
-  }
-
-  // Métodos legados (deprecated)
-  /** @deprecated Use gerarDica */
-  public async gerarDicaLegacy(palavra: string): Promise<RespostaIA | null> {
-    const client = this.getClient()
-    const prompt = `
-      Gere uma dica curta para a palavra "${palavra}".
-      - Não mencione letras
-      - Máx. 15 palavras
-      - Defina: tema (singular) e dificuldade (fácil | médio | difícil) com base no tamanho da palavra
-      - Retorne APENAS JSON no formato:
-      {
-        "dica": string,
-        "tema": string,
-        "dificuldade": string
-      }
-      `
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'Responda sempre somente com JSON válido, sem texto extra.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      max_completion_tokens: 70,
-    })
-
-    const respostaTexto = response.choices[0].message?.content || ''
-    const respostaJSON = JSON.parse(limparRespostaJSON(respostaTexto))
-
-    if (!respostaJSON.dificuldade || !respostaJSON.dica || !respostaJSON.tema) {
-      return null
-    }
-
-    return respostaJSON
   }
 
   public async gerarTema(palavra: string): Promise<string | null> {

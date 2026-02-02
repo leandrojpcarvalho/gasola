@@ -80,7 +80,6 @@ export class ServicoDica {
 
     const { dica } = respostaIA
 
-    // Buscar informações adicionais da palavra (tema e dificuldade)
     const palavrasGeradas = await this.aiService.gerarPalavras(palavraStr, 1)
     const palavraInfo = palavrasGeradas?.[0]
 
