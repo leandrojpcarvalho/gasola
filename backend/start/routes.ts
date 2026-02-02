@@ -17,6 +17,11 @@ router.get('/', async () => {
   return { api: 'jogo da forca' }
 })
 
+// Health check endpoint para Docker
+router.get('/health', async ({ response }) => {
+  return response.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
 router
   .group(() => {
     router.post('/criar', [ControleUsuario, 'criar'])

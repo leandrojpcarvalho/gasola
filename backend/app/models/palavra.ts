@@ -1,4 +1,4 @@
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { IPalavra, EDificuldade } from 'jogodaforca-shared'
 import Tema from './tema.js'
