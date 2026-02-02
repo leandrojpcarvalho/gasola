@@ -1,13 +1,16 @@
 import { Server } from 'socket.io'
+import { Server as HttpServer } from 'node:http'
 
 class Ws {
   public io: Server | null = null
 
-  public boot() {
+  public boot(httpServer?: HttpServer) {
     if (this.io) return
-    this.io = new Server(3334, {
+
+    this.io = new Server(httpServer, {
       cors: {
         origin: '*',
+        credentials: true,
       },
     })
   }
