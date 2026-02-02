@@ -1,24 +1,22 @@
 import {
   Criacao,
-  RespostaTentativa,
   SessaoDeJogo,
   Tentativa,
   EEstadoDeJogo,
   IJogo,
   Ranking,
+  RespostaServico,
+  Estado,
 } from 'jogodaforca-shared'
 import Jogo from '#models/jogo'
 import { RedisJogoModelo } from '#models/index'
-import {
-  Servico,
-  RespostaServico,
-  ServicoUsuario,
-  ServicoPalavra,
-  calcularPontuacaoMaxima,
-} from '../index.js'
+import { Servico, ServicoUsuario, ServicoPalavra, calcularPontuacaoMaxima } from '../index.js'
 import { AtualizadorDeJogo } from './entities/atualizador_jogo.js'
+import { TransactionClientContract } from '@adonisjs/lucid/types/database'
 
-type CriacaoDeJogo = Criacao<Omit<IJogo, 'pontuacao' | 'resultado'>>
+type CriacaoDeJogo = Criacao<Omit<IJogo, 'pontuacao' | 'resultado' | 'idPalavra'>> & {
+  trx?: TransactionClientContract
+}
 
 export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
   constructor(
@@ -29,11 +27,19 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
   ) {}
 
   async pegarPorId(id: number) {
+    const data = await this.modelRedis.pegarJogo(id)
+    if (data) {
+      return {
+        mensagem: 'Jogo encontrado com sucesso',
+        codigoDeStatus: 200,
+        data,
+      }
+    }
+
     const jogo = await this.modelo.find(id)
     if (!jogo) {
       return { mensagem: 'Jogo não encontrado', codigoDeStatus: 404 }
     }
-    const data = await this.modelRedis.pegarJogo(jogo)
 
     return {
       mensagem: 'Jogo encontrado com sucesso',
@@ -42,15 +48,7 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
     }
   }
 
-  async criar(dado: CriacaoDeJogo) {
-    const jogoExistente = await this.modelRedis.pegarJogo(dado)
-    if (jogoExistente) {
-      return {
-        mensagem: 'Jogo já existe',
-        codigoDeStatus: 200,
-        data: jogoExistente,
-      }
-    }
+  async criar(dado: CriacaoDeJogo, idPalavra: number) {
     const resultadoUsuario = await this.servicoUsuario.pegarPorId(dado.idUsuario)
 
     const usuario = resultadoUsuario.data
@@ -58,7 +56,7 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
       return resultadoUsuario
     }
 
-    const resultadoPalavra = await this.servicoPalavra.pegarPorId(dado.idPalavra)
+    const resultadoPalavra = await this.servicoPalavra.pegarPorId(idPalavra)
 
     const palavra = resultadoPalavra.data
 
@@ -69,40 +67,41 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
     const jogo = await this.modelo.create({
       idPalavra: palavra.id,
       idUsuario: usuario.id,
-      pontuacao: calcularPontuacaoMaxima(palavra.dificuldade, palavra.valor.length),
+      dificuldade: palavra.dificuldade,
+      pontuacao: calcularPontuacaoMaxima(palavra.dificuldade, palavra.valor),
       resultado: EEstadoDeJogo.ATIVO,
     })
 
-    const sessaoDeJogo = await this.modelRedis.cadastrarEAtualizarJogo(
-      AtualizadorDeJogo.pegarInstancia(jogo, palavra).jogo
-    )
+    const sessaoDeJogo = AtualizadorDeJogo.pegarInstancia(jogo, palavra)
+    await this.modelRedis.cadastrarEAtualizarJogo(sessaoDeJogo.jogo)
 
     return {
       mensagem: 'Jogo criado com sucesso',
       codigoDeStatus: 201,
-      data: sessaoDeJogo,
+      data: sessaoDeJogo.jogoEstado,
     }
   }
 
-  async calcularNovaPontuacao(tentativa: Tentativa): RespostaServico<RespostaTentativa> {
-    const jogo = await this.modelRedis.pegarJogo(tentativa)
+  async calcularNovaPontuacao(tentaiva: Tentativa): RespostaServico<Estado> {
+    const jogo = await this.modelRedis.pegarJogo(tentaiva.idJogo)
     if (!jogo) {
-      return { mensagem: 'Jogo não encontrado', codigoDeStatus: 404 }
+      const resposta = await this.pegarPorId(tentaiva.idJogo)
+      if (!resposta.data) {
+        return resposta
+      }
+      return {
+        mensagem: 'Jogo não está ativo no momento',
+        codigoDeStatus: 400,
+      }
     }
-
-    const atualizadorDeJogo = new AtualizadorDeJogo(jogo)
-    const estadoAtualizado = atualizadorDeJogo.tentarLetra(tentativa.letra)
-
-    await this.modelRedis.cadastrarEAtualizarJogo(atualizadorDeJogo.jogo)
-
-    if (estadoAtualizado.estadoAtual !== EEstadoDeJogo.ATIVO) {
-      await this.finalizarJogo(atualizadorDeJogo)
-    }
+    const atualizador = new AtualizadorDeJogo(jogo)
+    atualizador.tentarLetra(tentaiva.letra)
+    await this.persistirJogo(atualizador)
 
     return {
       mensagem: 'Tentativa processada com sucesso',
       codigoDeStatus: 200,
-      data: estadoAtualizado,
+      data: atualizador.jogoEstado,
     }
   }
 
@@ -112,7 +111,7 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
       return { mensagem: 'Jogo não encontrado', codigoDeStatus: 404 }
     }
 
-    await this.modelRedis.deletarJogo(jogo)
+    await this.modelRedis.deletarJogo(jogo.id)
     await jogo.delete()
 
     return {
@@ -122,31 +121,37 @@ export class ServicoJogo implements Servico<IJogo, SessaoDeJogo> {
     }
   }
 
-  public async finalizarJogo(instancia: AtualizadorDeJogo) {
+  public async persistirJogo(instancia: AtualizadorDeJogo) {
     if (instancia.jogo.estado !== EEstadoDeJogo.ATIVO) {
+      const instanciaDb = await this.modelo.find(instancia.jogo.idJogo)
+      if (!instanciaDb) {
+        await this.modelRedis.deletarJogo(instancia.jogo)
+        return
+      }
+      await this.modelRedis.deletarJogo(instancia.jogo)
+      instanciaDb.pontuacao = instancia.jogo.pontuacaoAtual
+      instanciaDb.resultado = instancia.jogo.estado
+      await instanciaDb.save()
       return
     }
-    await this.modelRedis.deletarJogo(instancia.jogo)
-    await this.modelo.updateOrCreate(instancia.jogo, {
-      pontuacao: instancia.jogo.pontuacaoAtual,
-      resultado: instancia.jogo.estado,
-    })
+    await this.modelRedis.cadastrarEAtualizarJogo(instancia.jogo)
   }
 
   public async pegarRanking(): Promise<Ranking[]> {
     const ranking = await this.modelo
       .query()
-      .join('usuarios', 'jogos.idUsuario', 'usuarios.id')
-      .select('idUsuario')
-      .sum('pontuacao as pontuacaoTotal')
-      .groupBy('idUsuario')
-      .orderBy('pontuacaoTotal', 'desc')
+      .where('resultado', EEstadoDeJogo.VITORIA)
+      .join('usuarios', 'jogos.id_usuario', 'usuarios.id')
+      .select('usuarios.nome', 'jogos.id_usuario')
+      .sum('pontuacao as pontuacao_total')
+      .groupBy('jogos.id_usuario', 'usuarios.nome')
+      .orderBy('pontuacao_total', 'desc')
       .limit(10)
 
     return ranking.map((item, index) => ({
       posicao: index + 1,
-      nome: item.usuario.nome,
-      pontuacaoTotal: item.$extras.pontuacaoTotal,
+      nome: item.$extras.nome,
+      pontuacaoTotal: Number(item.$extras.pontuacao_total),
     }))
   }
 }
