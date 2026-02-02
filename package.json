@@ -1,0 +1,8 @@
+{
+    "scripts": {
+        "install-front": "cd ./frontend && npm install && cd ..",
+        "install-back": "cd ./backend && npm install && cd ..",
+        "build-shared": "cd ./shared && npm run build && cd ..",
+        "prepare": "npm run build-shared && npm run install-front && npm run install-back"
+    }
+}
