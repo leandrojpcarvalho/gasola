@@ -158,7 +158,6 @@ test.group('Usuario - Criar', (group) => {
   })
 
   test('deve retornar erro ao tentar criar usuário com email já existente', async ({ client }) => {
-    // Primeiro, cria o usuário
     await client.post('/usuario/criar').json({
       nome: 'João Silva',
       email: 'joao@exemplo.com',
@@ -166,7 +165,6 @@ test.group('Usuario - Criar', (group) => {
       dificuldade: EDificuldade.FACIL,
     })
 
-    // Tenta criar outro usuário com o mesmo email
     const response = await client.post('/usuario/criar').json({
       nome: 'Maria Silva',
       email: 'joao@exemplo.com',
@@ -204,7 +202,6 @@ test.group('Usuario - Login', (group) => {
   group.each.setup(() => testUtils.db().truncate())
 
   test('deve fazer login com credenciais válidas', async ({ client, assert }) => {
-    // Primeiro, cria o usuário
     await client.post('/usuario/criar').json({
       nome: 'João Silva',
       email: 'joao@exemplo.com',
@@ -212,7 +209,6 @@ test.group('Usuario - Login', (group) => {
       dificuldade: EDificuldade.FACIL,
     })
 
-    // Faz o login
     const response = await client.post('/usuario/login').json({
       email: 'joao@exemplo.com',
       senha: 'senha123',
@@ -239,7 +235,6 @@ test.group('Usuario - Login', (group) => {
   })
 
   test('deve retornar erro ao fazer login com senha incorreta', async ({ client }) => {
-    // Primeiro, cria o usuário
     await client.post('/usuario/criar').json({
       nome: 'João Silva',
       email: 'joao@exemplo.com',
@@ -247,7 +242,6 @@ test.group('Usuario - Login', (group) => {
       dificuldade: EDificuldade.FACIL,
     })
 
-    // Tenta fazer login com senha incorreta
     const response = await client.post('/usuario/login').json({
       email: 'joao@exemplo.com',
       senha: 'senhaerrada',
@@ -339,12 +333,10 @@ test.group('Usuario - Login', (group) => {
       },
     ]
 
-    // Cria os usuários
     for (const usuario of usuarios) {
       await client.post('/usuario/criar').json(usuario)
     }
 
-    // Faz login com cada usuário
     for (const usuario of usuarios) {
       const response = await client.post('/usuario/login').json({
         email: usuario.email,
