@@ -1,7 +1,7 @@
 import { SessaoDeJogo } from 'jogodaforca-shared'
 import redis from '@adonisjs/redis/services/main'
 
-type BuscarJogo = { idUsuario: number; idPalavra: number } | SessaoDeJogo
+type BuscarJogo = number | SessaoDeJogo
 
 export class RedisJogoModelo {
   constructor(private model = redis) {}
@@ -23,9 +23,9 @@ export class RedisJogoModelo {
   }
 
   private gerarChave(jogo: BuscarJogo): string {
-    if ('palavra' in jogo) {
-      return `${jogo.idUsuario}:${jogo.palavra.id}`
+    if (typeof jogo === 'number') {
+      return `jogo:${jogo}`
     }
-    return `${jogo.idUsuario}:${jogo.idPalavra}`
+    return `jogo:${jogo.idJogo}`
   }
 }

@@ -12,6 +12,7 @@ export default class extends BaseSchema {
       table.integer('id_usuario').unsigned().notNullable().references('id').inTable('usuarios')
       table.integer('id_palavra').unsigned().notNullable().references('id').inTable('palavras')
       table.integer('pontuacao').notNullable()
+      table.enum('dificuldade', ['fácil', 'médio', 'difícil']).notNullable()
       table.enum('resultado', ['vitória', 'derrota', 'ativo']).notNullable()
     })
   }
