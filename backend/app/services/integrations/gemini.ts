@@ -17,7 +17,7 @@ function limparRespostaJSON(texto: string): string {
 export class ServicoGemini implements ServiceIAInterface {
   public readonly providerName = 'Gemini'
   private apiKey: string | null
-  private model = 'gemini-1.5-pro' // Modelo disponível na API
+  private model = 'gemini-2.5-flash'
 
   public static getInstance(): ServicoGemini | null {
     const apiKey = env.get('GEMINI_API_KEY')
