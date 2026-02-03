@@ -42,3 +42,9 @@ export function armazenamentoLocal(params: LocalStorageParams) {
     removerLocalStorage(chave);
   }
 }
+
+export function limparArmazenamentoLocal() {
+  Object.keys(localStorageMap).forEach((chave) => {
+    removerLocalStorage(chave as keyof typeof localStorageMap);
+  });
+}
