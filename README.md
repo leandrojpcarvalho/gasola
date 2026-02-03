@@ -1,6 +1,6 @@
 # 🎮 Jogo da Forca
 
-Aplicação fullstack com multiplayer em tempo real, geração de palavras via IA, autenticação e ranking.
+Aplicação fullstack em tempo real, geração de palavras via IA, autenticação e ranking.
 
 ## 📋 Índice
 
@@ -81,7 +81,7 @@ Crie `backend/.env`:
 ```env
 PORT=3333
 HOST=0.0.0.0
-APP_KEY=seu_app_key_32_caracteres
+APP_KEY=1234567890abcdef1234567890abcdef
 NODE_ENV=development
 
 DB_HOST=db
@@ -108,7 +108,7 @@ DB_DATABASE=jogodaforca_test
 Crie `frontend/.env`:
 ```env
 VITE_API_URL=http://localhost:3333
-VITE_SOCKET_URL=http://localhost:3333
+VITE_PORT=5173
 ```
 
 ### 3. Instalar Dependências
@@ -196,7 +196,7 @@ npm run test:watch       # Modo watch
 POST /usuario/guest        # Criar usuário guest
 GET  /temas                # Listar temas
 GET  /jogo/ranking         # Top 10 ranking
-GET  /usuario/:id/historico # Histórico do usuário
+GET  /usuario/historico    # Histórico do usuário
 ```
 
 ### Socket.IO
