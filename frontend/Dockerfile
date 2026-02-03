@@ -28,6 +28,10 @@ RUN npm install
 # Copiar código do frontend
 COPY frontend/ ./
 
+# Copiar script de entrypoint
+COPY frontend/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host"]
+ENTRYPOINT ["docker-entrypoint.sh"]

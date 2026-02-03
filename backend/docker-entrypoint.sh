@@ -4,6 +4,33 @@ set -x
 
 echo "🚀 Iniciando script de entrada do Docker..."
 
+echo "📦 Verificando pasta shared..."
+if [ -d "/shared" ]; then
+  cd /shared
+  
+  if [ ! -d "node_modules" ] || [ ! -d "build" ]; then
+    echo "📦 Instalando dependências do shared..."
+    npm install
+    echo "🔨 Construindo shared..."
+    npm run build
+  else
+    echo "✅ Shared já está instalado e construído"
+  fi
+else
+  echo "⚠️  Pasta shared não encontrada"
+fi
+
+# Voltar para o diretório do backend
+cd /app
+
+# Sempre verificar se o backend tem node_modules
+if [ ! -d "node_modules" ]; then
+  echo "📦 Instalando dependências do backend..."
+  npm install
+else
+  echo "✅ Dependências do backend já instaladas"
+fi
+
 echo "⏳ Aguardando banco de dados..."
 
 until pg_isready \
@@ -66,15 +93,18 @@ node ace migration:run
 
 echo "🌱 Verificando se precisa rodar seed..."
 
-SEED_CHECK=$(node ace db:query "SELECT COUNT(*) as count FROM temas" \
-  | grep -o '[0-9]\+' \
-  | head -n 1)
+# Verificar se a tabela temas existe e tem dados
+SEED_CHECK=$(psql \
+  -h "$DB_HOST" \
+  -U "$DB_USER" \
+  -d "$DB_DATABASE" \
+  -tAc "SELECT COUNT(*) FROM temas" 2>/dev/null || echo "0")
 
-if [ "$SEED_CHECK" = "0" ]; then
+if [ "$SEED_CHECK" = "0" ] || [ -z "$SEED_CHECK" ]; then
   echo "🌱 Banco vazio, rodando seed..."
   node ace db:seed
 else
-  echo "✅ Banco já possui dados, seed ignorado"
+  echo "✅ Banco já possui $SEED_CHECK tema(s), seed ignorado"
 fi
 
 echo "▶️ Iniciando aplicação..."

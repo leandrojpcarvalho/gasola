@@ -13,8 +13,8 @@ Aplicação fullstack com multiplayer em tempo real, geração de palavras via I
 
 ## 🚀 Stack
 
-**Backend:** AdonisJS 6, TypeScript, PostgreSQL 16, Redis 7, Socket.IO, OpenAI/Gemini  
-**Frontend:** React 19, TypeScript, Vite, TailwindCSS, Socket.IO Client  
+**Backend:** AdonisJS 6, TypeScript, PostgreSQL 16, Redis 7, Socket.IO, OpenAI/Gemini
+**Frontend:** React 19, TypeScript, Vite, TailwindCSS, Socket.IO Client
 **Infra:** Docker, Docker Compose
 
 ## 📦 Requisitos
@@ -63,7 +63,7 @@ gasola/
 
 ### 🗄️ Banco de Dados
 
-**Tabelas:** `usuarios`, `temas`, `palavras`, `jogos`, `access_tokens`  
+**Tabelas:** `usuarios`, `temas`, `palavras`, `jogos`, `access_tokens`
 **Relacionamentos:** usuarios → jogos ← palavras ← temas
 
 ## ⚙️ Início Rápido
@@ -111,10 +111,28 @@ VITE_API_URL=http://localhost:3333
 VITE_SOCKET_URL=http://localhost:3333
 ```
 
-### 3. Inicie a Aplicação
+### 3. Instalar Dependências
+
+**IMPORTANTE:** Antes de iniciar o Docker, instale as dependências localmente:
+
+```bash
+npm run install:all
+```
+
+Este comando:
+- ✅ Instala dependências do pacote `shared`
+- ✅ Constrói o pacote `shared`
+- ✅ Instala dependências do `backend` (inclui link para shared)
+- ✅ Instala dependências do `frontend` (inclui link para shared)
+
+> **Por quê?** O backend e frontend dependem de `jogodaforca-shared` via `file:../shared`. O Docker usa bind mounts que compartilham a pasta local, então as dependências precisam existir antes de iniciar os containers.
+
+### 4. Inicie a Aplicação
 
 ```bash
 npm run dev
+# ou
+docker-compose up
 ```
 
 O `docker-entrypoint.sh` automaticamente:
@@ -182,10 +200,45 @@ GET  /usuario/:id/historico # Histórico do usuário
 ```
 
 ### Socket.IO
-**Client → Server:** `novoJogo`, `novoJogoTemaIA`, `tentarJogada`, `pedirHint`, `restaurarJogo`, `finalizarJogo`  
+**Client → Server:** `novoJogo`, `novoJogoTemaIA`, `tentarJogada`, `pedirHint`, `restaurarJogo`, `finalizarJogo`
 **Server → Client:** `estadoDoJogo`, `erro`, `dica`
 
 ## 🐛 Troubleshooting
+
+### Problema de Permissões
+
+Se precisar limpar as pastas criadas pelo Docker (como `shared/build`), use:
+
+```bash
+sudo rm -rf shared/build shared/node_modules
+sudo rm -rf backend/node_modules
+sudo rm -rf frontend/node_modules
+```
+
+Depois reinstale:
+```bash
+npm run install:all
+```
+
+> **Por quê?** O Docker cria arquivos como root. Para evitar isso no futuro, você pode configurar o Docker para rodar com seu usuário (veja Docker rootless mode).
+
+### Reinstalação Limpa
+
+Para uma reinstalação completa do zero:
+
+```bash
+# Parar e limpar containers/volumes
+npm run stop:clean
+
+# Limpar dependências locais (com sudo se necessário)
+sudo rm -rf shared/build shared/node_modules backend/node_modules frontend/node_modules
+
+# Reinstalar tudo
+npm run install:all
+
+# Rebuild e iniciar
+npm run dev:build
+```
 
 **Logs:**
 ```bash
