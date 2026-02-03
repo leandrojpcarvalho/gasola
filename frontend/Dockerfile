@@ -16,6 +16,9 @@ COPY shared/ ./
 # Construir o shared
 RUN npm run build
 
+# Ajustar permissões do shared para o usuário node (que tem UID 1000)
+RUN chown -R node:node /shared
+
 # Mudar para o diretório do frontend
 WORKDIR /app
 
@@ -31,6 +34,10 @@ COPY frontend/ ./
 # Copiar script de entrypoint
 COPY frontend/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Ajustar permissões e mudar para usuário node
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 5173
 

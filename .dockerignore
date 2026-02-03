@@ -1,0 +1,29 @@
+# Node modules
+**/node_modules
+**/dist
+**/.npm
+
+# Build artifacts
+**/build
+**/tsconfig.tsbuildinfo
+
+# Logs
+**/logs
+**/*.log
+**/npm-debug.log*
+
+# Environment files
+**/.env.local
+**/.env.*.local
+
+# IDE
+**/.vscode
+**/.idea
+
+# Git
+**/.git
+**/.gitignore
+
+# OS
+**/.DS_Store
+**/Thumbs.db

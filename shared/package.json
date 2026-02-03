@@ -9,6 +9,7 @@
   "scripts": {
     "ci-install": "npm ci",
     "build": "tsc",
+    "build-shared": "npm install && npm run build",
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },

@@ -5,7 +5,6 @@ RUN apt-get update \
   && apt-get install -y postgresql-client \
   && rm -rf /var/lib/apt/lists/*
 
-
 # Criar diretório do shared
 WORKDIR /shared
 
@@ -21,6 +20,9 @@ COPY shared/ ./
 
 # Construir o shared
 RUN npm run build
+
+# Ajustar permissões do shared para o usuário node (que tem UID 1000)
+RUN chown -R node:node /shared
 
 # Mudar para o diretório do backend
 WORKDIR /app
@@ -38,9 +40,12 @@ COPY backend/ ./
 COPY backend/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
+# Ajustar permissões e mudar para usuário node
+RUN chown -R node:node /app
+USER node
+
 # Expor porta do servidor
 EXPOSE 3333
-
 
 ENTRYPOINT ["docker-entrypoint"]
 

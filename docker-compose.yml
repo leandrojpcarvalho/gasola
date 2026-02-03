@@ -49,8 +49,6 @@ services:
       - jogodaforca
     volumes:
       - ./backend:/app
-      - ./shared:/shared
-      - /shared/node_modules
       - /app/node_modules
     env_file:
       - ./backend/.env
@@ -78,9 +76,7 @@ services:
       - jogodaforca
     volumes:
       - ./frontend:/app
-      - ./shared:/shared
       - /app/node_modules
-      - /shared/node_modules
     env_file:
       - ./frontend/.env
     depends_on:
