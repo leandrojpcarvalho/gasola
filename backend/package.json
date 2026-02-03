@@ -1,20 +1,24 @@
 {
-  "name": "hello-world",
-  "version": "0.0.0",
+  "name": "jogodaforca-backend",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "start": "node bin/server.js",
     "build": "node ace build",
-    "db:seed": "node ace migration:run && node ace db:seed",
-    "db:reset": "DB_HOST=127.0.0.1 node ace db:wipe && npm run db:seed",
-    "back-init": "npm install && npm run db:start",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
+    "test:watch": "node ace test --watch",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:setup": "node ace migration:run && node ace db:seed",
+    "db:fresh": "node ace migration:fresh --force && node ace db:seed",
+    "db:migrate": "node ace migration:run",
+    "db:rollback": "node ace migration:rollback",
+    "db:seed": "node ace db:seed",
+    "db:reset": "node ace migration:reset && node ace db:seed"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
