@@ -102,7 +102,9 @@ export class AtualizadorDeJogo {
 
   public get palavra() {
     const palavraSeparada = this._palavra.split('')
-    return palavraSeparada.map((letra) => (this._letrasCorretas.has(letra) ? letra : '_'))
+    return palavraSeparada.map((letra) =>
+      this._letrasCorretas.has(normalizarTexto(letra)) ? letra : '_'
+    )
   }
 
   public get jogo(): SessaoDeJogo {

@@ -75,9 +75,9 @@ export class OrquestradorJogo implements Servico<NovoJogo, SessaoDeJogo> {
 
         const dbPalavra = await this.servicoPalavra.criarMuitas(
           palavras.map((palavra) => ({
-            valor: palavra.valor,
+            valor: palavra.valor.toLowerCase(),
             dicas: palavra.dicas,
-            dificuldade: palavra.dificuldade as EDificuldade,
+            dificuldade: palavra.dificuldade.toLowerCase() as EDificuldade,
             idTema: tema.id,
             dicaGeradaPorIA: null,
           })),
