@@ -4,7 +4,13 @@ import type { useSocket } from "./socket";
 import { keyboardSounds } from "../utils/keyboard_sounds";
 
 export function useJogo(socket: ReturnType<typeof useSocket>) {
-  const { estadoDoJogo, novoJogo, pedirHint, tentarJogada } = socket;
+  const {
+    estadoDoJogo,
+    novoJogo,
+    pedirHint,
+    tentarJogada,
+    limparConteudoDoJogo,
+  } = socket;
   const [letrasCorretas, setLetrasCorretas] = useState<string[]>([]);
   const [letrasIncorretas, setLetrasIncorretas] = useState<string[]>([]);
 
@@ -54,5 +60,6 @@ export function useJogo(socket: ReturnType<typeof useSocket>) {
     novoJogo,
     pedirHint,
     cliclarLetra,
+    limparConteudoDoJogo,
   };
 }

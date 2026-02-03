@@ -81,7 +81,7 @@ export function Layout() {
                     </div>
                 </Modal>}
             <main className={`container mx-auto px-4 py-6 flex-auto route-transition-fade`}>
-                <Outlet context={{ usuario: hookUsuario, realTimeSocket, partidaViaIA, iniciarPartida }} />
+                <Outlet context={{ usuario: hookUsuario, realTimeSocket, partidaViaIA, iniciarPartida  }} />
             </main>
         </>
     );

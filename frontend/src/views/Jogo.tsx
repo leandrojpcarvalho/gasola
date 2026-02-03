@@ -5,7 +5,7 @@ import { Palavra } from "../components/Palavra";
 import { EEstadoDeJogo } from "jogodaforca-shared";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import type { LayoutOutletContext } from "./Layout";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Vida } from "../components/Vida";
 import { JogarNovamente } from "../components/JogarNovamente";
 import { Dica } from "../components/Dica";
@@ -18,8 +18,8 @@ import { Ranking } from "./Ranking";
 export function Jogo() {
     const { realTimeSocket, iniciarPartida, partidaViaIA } = useOutletContext<LayoutOutletContext>();
     const { cliclarLetra, estadoDoJogo, letrasCorretas, letrasIncorretas, } = useJogo(realTimeSocket);
-    const [mostrarModal, setMostrarModal] = useState(false);
     const [novaPartida, setNovaPartida] = useState(false);
+    const [mostrarModal, setMostrarModal] = useState(false);
 
     const nav = useNavigate();
 
@@ -29,24 +29,49 @@ export function Jogo() {
     }
 
     function fecharModal() {
-        setMostrarModal(false);
-        nav("/");
+        realTimeSocket.limparConteudoDoJogo();
+        setNovaPartida(false);
     }
 
     function jogarNovamente() {
         setNovaPartida(true);
-        setMostrarModal(false);
     }
 
     function voltarParaInicio() {
         setNovaPartida(false);
-        setMostrarModal(false);
         nav("/");
     }
 
+    function selecionarModal() {
+        if (!novaPartida && estadoDoJogo) {
+            return <JogarNovamente
+                estadoDoJogo={estadoDoJogo.estado}
+                resposta={estadoDoJogo.palavra.join("")}
+                jogarNovamenteCallback={jogarNovamente}
+                cancelarCallback={fecharModal} />
+
+        }
+        return <ConfiguraPartida
+            iniciarPartidaCallback={iniciarPartida}
+            partidaViaIACallback={partidaViaIA}
+            cancelarCallback={voltarParaInicio} />
+
+    }
 
     useEffect(() => {
-    }, [estadoDoJogo]);
+        startTransition(() => {
+            if (!estadoDoJogo) {
+                setMostrarModal(true);
+                setNovaPartida(true);
+                return;
+            }
+            if (estadoDoJogo.estado !== EEstadoDeJogo.ATIVO) {
+                setMostrarModal(true);
+                return;
+            }
+            setMostrarModal(false);
+        });
+    }, [estadoDoJogo])
 
     if (!estadoDoJogo) {
         return <Ranking />;
@@ -55,19 +80,10 @@ export function Jogo() {
     return (
 
         <div>
-            <JogarNovamente
-                estadoDoJogo={estadoDoJogo.estado}
-                mostrarModal={estadoDoJogo.estado !== EEstadoDeJogo.ATIVO || mostrarModal}
-                resposta={estadoDoJogo.palavra.join("")}
-                jogarNovamenteCallback={jogarNovamente}
-                cancelarCallback={fecharModal}
-            />
-            {novaPartida &&
+
+            {mostrarModal &&
                 <Modal onClose={() => setNovaPartida(false)}>
-                    <ConfiguraPartida
-                        iniciarPartidaCallback={iniciarPartida}
-                        partidaViaIACallback={partidaViaIA}
-                        cancelarCallback={voltarParaInicio} />
+                    {selecionarModal()}
                 </Modal>}
 
             <div className="flex flex-col items-center justify-center gap-10 mb-8">

@@ -55,12 +55,8 @@ export function useSocket(usuario: Usuario | null) {
     }
   }
 
-  function irParaJogar() {
-    nav("/jogar");
-  }
-
-  function irParaPaginaInicial() {
-    nav("/");
+  function limparConteudoDoJogo() {
+    setEstadoDoJogo(null);
   }
 
   function finalizarJogo(idJogo: number) {
@@ -113,6 +109,14 @@ export function useSocket(usuario: Usuario | null) {
   }, [estadoDoJogo]);
 
   useEffect(() => {
+    function irParaJogar() {
+      nav("/jogar");
+    }
+
+    function irParaPaginaInicial() {
+      nav("/");
+    }
+
     const handleAtualizarPartida = (novoEstado: RespostaAtualizarJogo) => {
       setIsLoading(false);
       setIsLoadingHint(false);
@@ -121,10 +125,6 @@ export function useSocket(usuario: Usuario | null) {
         return;
       }
       if (novoEstado.type === "carregado") {
-        if (novoEstado.dado.estado !== EEstadoDeJogo.ATIVO) {
-          setEstadoDoJogo(null);
-          return;
-        }
         setEstadoDoJogo(novoEstado.dado);
         irParaJogar();
         return;
@@ -181,7 +181,7 @@ export function useSocket(usuario: Usuario | null) {
       socketCliente.off(ESocketEventos.NOVO_JOGO, handleNovoJogo);
       socketCliente.off(ESocketEventos.DESCONECTAR);
     };
-  }, [socketCliente, usuario]);
+  }, [socketCliente, usuario, nav]);
 
   return {
     novoJogo,
@@ -190,6 +190,7 @@ export function useSocket(usuario: Usuario | null) {
     solicitarRestaurarJogo,
     finalizarJogo,
     novoJogoTemaIA,
+    limparConteudoDoJogo,
     estadoDoJogo,
     isLoading,
     isLoadingHint,
