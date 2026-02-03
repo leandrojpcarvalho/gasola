@@ -1,5 +1,11 @@
 FROM node:20.19-bullseye
 
+# Instalar cliente do PostgreSQL
+RUN apt-get update \
+  && apt-get install -y postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
+
 # Criar diretório do shared
 WORKDIR /shared
 
@@ -28,8 +34,15 @@ RUN npm install
 # Copiar código do backend
 COPY backend/ ./
 
+# Copiar o entrypoint script
+COPY backend/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
 # Expor porta do servidor
 EXPOSE 3333
+
+
+ENTRYPOINT ["docker-entrypoint"]
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \

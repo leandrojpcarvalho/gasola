@@ -52,7 +52,7 @@ services:
       - ./shared:/shared
       - /shared/node_modules
       - /app/node_modules
-    environment:
+    env_file:
       - ./backend/.env
     depends_on:
       db:
@@ -81,7 +81,7 @@ services:
       - ./shared:/shared
       - /app/node_modules
       - /shared/node_modules
-    environment:
+    env_file:
       - ./frontend/.env
     depends_on:
       backend:

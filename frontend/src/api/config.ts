@@ -4,10 +4,7 @@ import type { RespostaApi, TiposDeRequest } from "./types";
 import { alert } from "../utils/alert";
 import { obterUUID } from "../utils/gerarUUID";
 
-const apiPort = import.meta.env.VITE_API_PORT || "3333";
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost";
-
-export const baseURL = `${apiUrl}:${apiPort}`;
+export const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const apiRotas = axios.create({
   baseURL,
